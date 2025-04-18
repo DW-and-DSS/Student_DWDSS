@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: student_warehouse_db
+    environment:
+      POSTGRES_USER: neondb_owner
+      POSTGRES_PASSWORD: npg_QXn1jCVf0yrg
+      POSTGRES_DB: neondb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neondb_owner"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    hostname: ep-dark-star-a4oefo1q-pooler.us-east-1.aws.neon.tech
+
+  etl:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DB_HOST=ep-dark-star-a4oefo1q-pooler.us-east-1.aws.neon.tech
+      - DB_PORT=5432
+      - DB_USER=neondb_owner
+      - DB_PASSWORD=npg_QXn1jCVf0yrg
+      - DB_NAME=neondb
+      - SSL_MODE=require
+    network_mode: "host"
+
+volumes:
+  postgres_data:

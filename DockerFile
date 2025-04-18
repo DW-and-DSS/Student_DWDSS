@@ -1,0 +1,23 @@
+FROM python:3.9-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the requirements file
+COPY requirements.txt .
+
+# Install the dependencies including PostgreSQL client
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc libpq-dev \
+    && pip install --no-cache-dir -r requirements.txt \
+    && apt-get purge -y --auto-remove gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the source code and data into the container
+COPY src/ ./src/
+COPY StudentPerformanceFactors.csv .
+COPY LoadingDW.py .
+COPY DataMart.py .
+
+# Command to run the ETL process
+CMD ["python", "LoadingDW.py", "&&", "python", "DataMart.py"]
